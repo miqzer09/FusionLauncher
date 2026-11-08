@@ -2,6 +2,7 @@ package com.vios.apex;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
@@ -10,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -499,6 +501,17 @@ public class MainActivity extends Activity {
 
         View sp = new View(this);
         top.addView(sp, new LinearLayout.LayoutParams(0, 1, 1f));
+
+        final View cleanBtn = new CleanIconView(this);
+        cleanBtn.setContentDescription("Clean Up Memory");
+        cleanBtn.setBackground(press(CARD, CARD_HI, dp(22)));
+        cleanBtn.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { cleanUpMemory(cleanBtn); }
+        });
+        cleanBtn.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override public boolean onLongClick(View v) { openTaskManager(); return true; }
+        });
+        top.addView(cleanBtn, mp(dp(44), dp(44), 0, 0, 0, dp(10), 0));
 
         TextView gear = tv("⚙", 22, TXT, true);
         gear.setGravity(Gravity.CENTER);
@@ -1030,6 +1043,65 @@ public class MainActivity extends Activity {
         AbsListViewLP(int h) { super(-1, h); }
     }
 
+    void cleanUpMemory(final View v) {
+        if (v != null) {
+            v.animate().rotationBy(360f).setDuration(500).start();
+        }
+
+        new Thread(new Runnable() {
+            @Override public void run() {
+                ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+                ActivityManager.MemoryInfo miBefore = new ActivityManager.MemoryInfo();
+                if (am != null) am.getMemoryInfo(miBefore);
+                long before = miBefore.availMem;
+
+                // 1. Terminate background processes of non-system apps
+                try {
+                    List<ApplicationInfo> apps = pm.getInstalledApplications(0);
+                    for (ApplicationInfo app : apps) {
+                        if ((app.flags & ApplicationInfo.FLAG_SYSTEM) == 0 && !app.packageName.equals(getPackageName())) {
+                            if (am != null) am.killBackgroundProcesses(app.packageName);
+                        }
+                    }
+                } catch (Exception ignored) {}
+
+                // 2. Drop caches via root if available
+                try {
+                    Runtime.getRuntime().exec(new String[]{"su", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"}).waitFor();
+                } catch (Exception ignored) {}
+
+                // 3. Garbage collection
+                System.gc();
+
+                ActivityManager.MemoryInfo miAfter = new ActivityManager.MemoryInfo();
+                if (am != null) am.getMemoryInfo(miAfter);
+                long after = miAfter.availMem;
+                final long freedMb = Math.max(0, (after - before) / (1024 * 1024));
+                final long freeTotalMb = after / (1024 * 1024);
+
+                ui.post(new Runnable() {
+                    @Override public void run() {
+                        if (freedMb > 5) {
+                            toast("⚡ Freed " + freedMb + " MB RAM • " + freeTotalMb + " MB Free");
+                        } else {
+                            toast("⚡ System Optimized • " + freeTotalMb + " MB Free");
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
+
+    void openTaskManager() {
+        try {
+            Runtime.getRuntime().exec(new String[]{"input", "keyevent", "187"});
+            return;
+        } catch (Exception ignored) {}
+        try {
+            launchIntent(new Intent(Settings.ACTION_APPLICATION_SETTINGS));
+        } catch (Exception ignored) {}
+    }
+
     void editVehicle() {
         LinearLayout l = new LinearLayout(this);
         l.setOrientation(LinearLayout.VERTICAL);
@@ -1502,6 +1574,66 @@ public class MainActivity extends Activity {
                     c.drawPath(path, p);
                 }
             }
+        }
+    }
+
+    static class CleanIconView extends View {
+        final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Path broomPath = new Path();
+        float lastW = -1, lastH = -1;
+
+        CleanIconView(Context c) { super(c); }
+
+        @Override protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            if (w == lastW && h == lastH) return;
+            lastW = w; lastH = h;
+            broomPath.reset();
+            // Flared broom bristles
+            broomPath.moveTo(w * 0.44f, h * 0.44f);
+            broomPath.lineTo(w * 0.56f, h * 0.52f);
+            broomPath.lineTo(w * 0.44f, h * 0.76f);
+            broomPath.lineTo(w * 0.24f, h * 0.70f);
+            broomPath.close();
+        }
+
+        @Override protected void onDraw(Canvas c) {
+            float w = getWidth(), h = getHeight();
+            if (w <= 0 || h <= 0) return;
+
+            p.reset();
+            p.setAntiAlias(true);
+
+            // 1. Broom Handle (45 degrees, from top-right down to center)
+            p.setColor(0xFFFFF5EE);
+            p.setStyle(Paint.Style.STROKE);
+            p.setStrokeCap(Paint.Cap.ROUND);
+            p.setStrokeWidth(w * 0.08f);
+            c.drawLine(w * 0.74f, h * 0.24f, w * 0.48f, h * 0.48f, p);
+
+            // 2. Ferrule / Collar
+            p.setColor(0xFFFF5500);
+            p.setStyle(Paint.Style.FILL);
+            c.drawCircle(w * 0.48f, h * 0.48f, w * 0.09f, p);
+
+            // 3. Flared sweep bristles in fiery Ember
+            p.setColor(0xFFFF5500);
+            c.drawPath(broomPath, p);
+
+            // Bristle slit detail lines
+            p.setColor(0xFF140E0C);
+            p.setStyle(Paint.Style.STROKE);
+            p.setStrokeWidth(w * 0.03f);
+            c.drawLine(w * 0.42f, h * 0.53f, w * 0.30f, h * 0.72f, p);
+            c.drawLine(w * 0.49f, h * 0.56f, w * 0.38f, h * 0.74f, p);
+
+            // 4. Sparkle star (4-point diamond star at top-left cx=0.28, cy=0.28)
+            p.setColor(0xFFFFD740);
+            p.setStrokeWidth(w * 0.04f);
+            c.drawLine(w * 0.20f, h * 0.28f, w * 0.36f, h * 0.28f, p);
+            c.drawLine(w * 0.28f, h * 0.20f, w * 0.28f, h * 0.36f, p);
+            p.setColor(0xFFFFFFFF);
+            c.drawCircle(w * 0.28f, h * 0.28f, w * 0.035f, p);
         }
     }
 
