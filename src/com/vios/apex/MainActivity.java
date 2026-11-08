@@ -22,6 +22,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -841,17 +842,28 @@ public class MainActivity extends Activity {
         return t;
     }
 
+    int getBrandTypeForPackage(String pkg) {
+        if (pkg == null) return -1;
+        String p = pkg.toLowerCase(Locale.ROOT);
+        if (p.contains("spotify") || p.contains("tw.music") || p.equals("com.android.music")) return BrandIconView.TYPE_SPOTIFY;
+        if (p.contains("radio") || p.contains("tw.radio") || p.contains("txznet.launcher.radio")) return BrandIconView.TYPE_RADIO;
+        if (p.contains("waze")) return BrandIconView.TYPE_WAZE;
+        if (p.contains("youtube") || p.contains("revanced")) return BrandIconView.TYPE_YOUTUBE;
+        if (p.contains("eq") || p.contains("equalizer")) return BrandIconView.TYPE_EQ;
+        if (p.contains("maps") || p.contains("google.android.apps.maps")) return BrandIconView.TYPE_MAPS;
+        if (p.contains("chrome") || p.contains("browser")) return BrandIconView.TYPE_CHROME;
+        if (p.contains("bt") || p.contains("bluetooth") || p.contains("phone")) return BrandIconView.TYPE_BT;
+        if (p.contains("video")) return BrandIconView.TYPE_VIDEO;
+        if (p.contains("settings") || p.contains("carchoose")) return BrandIconView.TYPE_SETTINGS;
+        if (p.contains("file") || p.contains("explore")) return BrandIconView.TYPE_FILES;
+        return -1;
+    }
+
     int getBrandTypeForSlot(int slot, String pkg) {
         if (slot == ALL_APPS_SLOT) return BrandIconView.TYPE_ALL_APPS;
         if (pkg != null) {
-            String p = pkg.toLowerCase(Locale.ROOT);
-            if (p.contains("spotify") || p.contains("tw.music")) return BrandIconView.TYPE_SPOTIFY;
-            if (p.contains("radio")) return BrandIconView.TYPE_RADIO;
-            if (p.contains("waze")) return BrandIconView.TYPE_WAZE;
-            if (p.contains("youtube")) return BrandIconView.TYPE_YOUTUBE;
-            if (p.contains("eq") || p.contains("equalizer")) return BrandIconView.TYPE_EQ;
-            if (p.contains("maps") || p.contains("google.android.apps.maps")) return BrandIconView.TYPE_MAPS;
-            if (p.contains("chrome") || p.contains("browser")) return BrandIconView.TYPE_CHROME;
+            int b = getBrandTypeForPackage(pkg);
+            if (b >= 0) return b;
             String saved = prefs.getString("slot_" + slot, null);
             if (saved != null && !saved.equals(pkg)) return -1;
             for (String def : DEFAULTS[slot]) {
@@ -959,7 +971,13 @@ public class MainActivity extends Activity {
                 lbl = "YouTube";
             }
             a.label = lbl;
-            a.icon = ri.loadIcon(pm);
+            int brand = getBrandTypeForPackage(pkg);
+            if (brand >= 0) {
+                Bitmap bmp = BrandIconView.getIconBitmap(this, brand, dp(52));
+                a.icon = (bmp != null) ? new BitmapDrawable(getResources(), bmp) : ri.loadIcon(pm);
+            } else {
+                a.icon = ri.loadIcon(pm);
+            }
             out.add(a);
         }
         Collections.sort(out, new Comparator<AppItem>() {

@@ -25,6 +25,10 @@ public class BrandIconView extends View {
     public static final int TYPE_MAPS = 5;
     public static final int TYPE_CHROME = 6;
     public static final int TYPE_ALL_APPS = 7;
+    public static final int TYPE_BT = 8;
+    public static final int TYPE_VIDEO = 9;
+    public static final int TYPE_SETTINGS = 10;
+    public static final int TYPE_FILES = 11;
 
     private final int type;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -43,6 +47,9 @@ public class BrandIconView extends View {
 
     // YouTube triangle
     private final Path playTri = new Path();
+
+    // Bluetooth path
+    private final Path btPath = new Path();
 
     // Waze car
     private final Path wazeBody = new Path();
@@ -198,6 +205,38 @@ public class BrandIconView extends View {
                 chromeGreen.arcTo(rfTemp, 90, 120, true);
                 chromeGreen.lineTo(ccx, ccy);
                 chromeGreen.close();
+                break;
+
+            case TYPE_BT:
+                bgShader = new LinearGradient(ox, oy, ox, oy + s,
+                        0xFF007AFF, 0xFF0055D4, Shader.TileMode.CLAMP);
+                float btcx = ox + s * 0.50f;
+                btPath.reset();
+                btPath.moveTo(btcx - s * 0.13f, oy + s * 0.35f);
+                btPath.lineTo(btcx + s * 0.14f, oy + s * 0.63f);
+                btPath.lineTo(btcx, oy + s * 0.77f);
+                btPath.lineTo(btcx, oy + s * 0.23f);
+                btPath.lineTo(btcx + s * 0.14f, oy + s * 0.37f);
+                btPath.lineTo(btcx - s * 0.13f, oy + s * 0.65f);
+                break;
+
+            case TYPE_VIDEO:
+                bgShader = new LinearGradient(ox, oy, ox, oy + s,
+                        0xFF8E24AA, 0xFF4A148C, Shader.TileMode.CLAMP);
+                playTri.reset();
+                playTri.moveTo(ox + s * 0.40f, oy + s * 0.35f);
+                playTri.lineTo(ox + s * 0.68f, oy + s * 0.52f);
+                playTri.lineTo(ox + s * 0.40f, oy + s * 0.69f);
+                playTri.close();
+                break;
+
+            case TYPE_SETTINGS:
+                bgShader = null;
+                break;
+
+            case TYPE_FILES:
+                bgShader = new LinearGradient(ox, oy, ox, oy + s,
+                        0xFFFF9100, 0xFFFF6D00, Shader.TileMode.CLAMP);
                 break;
         }
     }
@@ -471,6 +510,81 @@ public class BrandIconView extends View {
                         canvas.drawRoundRect(rfTemp, pebR, pebR, paint);
                     }
                 }
+                break;
+
+            case TYPE_BT:
+                // Royal blue squircle
+                paint.setStyle(Paint.Style.FILL);
+                paint.setShader(bgShader);
+                canvas.drawRoundRect(rfBg, squircleR, squircleR, paint);
+                paint.setShader(null);
+
+                // Bluetooth rune
+                paint.setColor(0xFFFFFFFF);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeCap(Paint.Cap.ROUND);
+                paint.setStrokeJoin(Paint.Join.ROUND);
+                paint.setStrokeWidth(s * 0.065f);
+                float bcx = ox + s * 0.50f;
+                canvas.drawLine(bcx, oy + s * 0.23f, bcx, oy + s * 0.77f, paint);
+                canvas.drawPath(btPath, paint);
+                break;
+
+            case TYPE_VIDEO:
+                // Vibrant Violet/Magenta
+                paint.setStyle(Paint.Style.FILL);
+                paint.setShader(bgShader);
+                canvas.drawRoundRect(rfBg, squircleR, squircleR, paint);
+                paint.setShader(null);
+
+                // Film strip top bar
+                paint.setColor(0xFFFFFFFF);
+                rfTemp.set(ox + s * 0.20f, oy + s * 0.24f, ox + s * 0.80f, oy + s * 0.34f);
+                canvas.drawRoundRect(rfTemp, s * 0.03f, s * 0.03f, paint);
+
+                // Play symbol
+                canvas.drawPath(playTri, paint);
+                break;
+
+            case TYPE_SETTINGS:
+                // Dark slate plate with gear
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(0xFF1F222B);
+                canvas.drawRoundRect(rfBg, squircleR, squircleR, paint);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setColor(0xFF383D4E);
+                paint.setStrokeWidth(s * 0.02f);
+                canvas.drawRoundRect(rfBg, squircleR, squircleR, paint);
+
+                // Gear center & teeth
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(0xFFFFF5EE);
+                float gcx = ox + s * 0.50f, gcy = oy + s * 0.50f;
+                for (int i = 0; i < 6; i++) {
+                    canvas.save();
+                    canvas.rotate(i * 60f, gcx, gcy);
+                    rfTemp.set(gcx - s * 0.06f, gcy - s * 0.26f, gcx + s * 0.06f, gcy - s * 0.16f);
+                    canvas.drawRoundRect(rfTemp, s * 0.02f, s * 0.02f, paint);
+                    canvas.restore();
+                }
+                canvas.drawCircle(gcx, gcy, s * 0.20f, paint);
+                paint.setColor(0xFF1F222B);
+                canvas.drawCircle(gcx, gcy, s * 0.09f, paint);
+                break;
+
+            case TYPE_FILES:
+                // Amber/Orange folder
+                paint.setStyle(Paint.Style.FILL);
+                paint.setShader(bgShader);
+                canvas.drawRoundRect(rfBg, squircleR, squircleR, paint);
+                paint.setShader(null);
+
+                // Folder shape
+                paint.setColor(0xFFFFFFFF);
+                rfTemp.set(ox + s * 0.22f, oy + s * 0.28f, ox + s * 0.46f, oy + s * 0.38f);
+                canvas.drawRoundRect(rfTemp, s * 0.04f, s * 0.04f, paint);
+                rfTemp.set(ox + s * 0.22f, oy + s * 0.34f, ox + s * 0.78f, oy + s * 0.72f);
+                canvas.drawRoundRect(rfTemp, s * 0.06f, s * 0.06f, paint);
                 break;
         }
     }
