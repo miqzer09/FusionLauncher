@@ -827,28 +827,61 @@ public class MainActivity extends Activity {
         return t;
     }
 
+    int getBrandTypeForSlot(int slot, String pkg) {
+        if (slot == ALL_APPS_SLOT) return BrandIconView.TYPE_ALL_APPS;
+        if (pkg != null) {
+            String p = pkg.toLowerCase(Locale.ROOT);
+            if (p.contains("spotify") || p.contains("tw.music")) return BrandIconView.TYPE_SPOTIFY;
+            if (p.contains("radio")) return BrandIconView.TYPE_RADIO;
+            if (p.contains("waze")) return BrandIconView.TYPE_WAZE;
+            if (p.contains("youtube")) return BrandIconView.TYPE_YOUTUBE;
+            if (p.contains("eq") || p.contains("equalizer")) return BrandIconView.TYPE_EQ;
+            if (p.contains("maps") || p.contains("google.android.apps.maps")) return BrandIconView.TYPE_MAPS;
+            if (p.contains("chrome") || p.contains("browser")) return BrandIconView.TYPE_CHROME;
+            String saved = prefs.getString("slot_" + slot, null);
+            if (saved != null && !saved.equals(pkg)) return -1;
+            for (String def : DEFAULTS[slot]) {
+                if (def.equals(pkg)) return slot;
+            }
+            return -1;
+        }
+        return (slot >= 0 && slot < 7) ? slot : -1;
+    }
+
     void refreshTiles() {
         for (int slot = 0; slot < tiles.length; slot++) {
             LinearLayout t = (LinearLayout) tiles[slot];
             t.removeAllViews();
             View icon;
             String label = TITLES[slot];
-            if (slot == ALL_APPS_SLOT) {
-                icon = new GridGlyph(this);
+            String pkg = slotPackage(slot);
+            int brandType = getBrandTypeForSlot(slot, pkg);
+
+            if (brandType >= 0) {
+                icon = new BrandIconView(this, brandType);
+                if (pkg != null) {
+                    try {
+                        String appLabel = String.valueOf(pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)));
+                        if ("app.revanced.android.youtube".equals(pkg) || appLabel.toLowerCase().contains("revanced")) {
+                            label = "YouTube";
+                        } else if (!appLabel.isEmpty()) {
+                            label = appLabel;
+                        }
+                    } catch (Exception ignored) {}
+                }
             } else {
-                String pkg = slotPackage(slot);
                 ImageView iv = new ImageView(this);
                 iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 if (pkg != null) {
                     try {
                         iv.setImageDrawable(pm.getApplicationIcon(pkg));
                         label = String.valueOf(pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)));
-                        if ("app.revanced.android.youtube".equals(pkg) || label.toLowerCase().contains("revanced")) {
-                            label = "YouTube";
-                        }
                     } catch (Exception e) { pkg = null; }
                 }
-                if (pkg == null) { iv.setImageDrawable(new ColorDrawable(0)); label = TITLES[slot] + " (hold to set)"; }
+                if (pkg == null) {
+                    iv.setImageDrawable(new ColorDrawable(0));
+                    label = TITLES[slot] + " (hold to set)";
+                }
                 icon = iv;
             }
             t.addView(icon, new LinearLayout.LayoutParams(dp(52), dp(52)));
