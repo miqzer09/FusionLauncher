@@ -970,17 +970,8 @@ public class MainActivity extends Activity {
         bar.setGravity(Gravity.CENTER_VERTICAL);
         root.addView(bar, new LinearLayout.LayoutParams(-1, dp(56)));
         TextView ttl = tv(title == null ? "All Apps" : title, 22, TXT, true);
-        bar.addView(ttl);
-        final EditText search = new EditText(this);
-        search.setHint("Search");
-        search.setHintTextColor(SUB);
-        search.setTextColor(TXT);
-        search.setSingleLine(true);
-        search.setInputType(InputType.TYPE_CLASS_TEXT);
-        search.setBackground(rr(CARD, dp(18)));
-        search.setPadding(dp(16), 0, dp(16), 0);
-        bar.addView(search, mp(0, dp(44), 1f, dp(20), 0, dp(14), 0));
-        TextView close = tv("CLOSE", 13, TXT, true);
+        bar.addView(ttl, mp(0, -2, 1f, dp(6), 0, 0, 0));
+        TextView close = tv("✕ CLOSE", 13, TXT, true);
         close.setGravity(Gravity.CENTER);
         close.setPadding(dp(18), 0, dp(18), 0);
         close.setBackground(press(CARD, CARD_HI, dp(22)));
@@ -1030,16 +1021,6 @@ public class MainActivity extends Activity {
                     refreshTiles();
                 } else launchPackage(a.pkg);
             }
-        });
-        search.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
-            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {
-                String q = s.toString().toLowerCase(Locale.ROOT).trim();
-                shown.clear();
-                for (AppItem it : all) if (q.isEmpty() || it.label.toLowerCase(Locale.ROOT).contains(q)) shown.add(it);
-                ad.notifyDataSetChanged();
-            }
-            @Override public void afterTextChanged(Editable s) { }
         });
         d.setContentView(root);
         d.show();
