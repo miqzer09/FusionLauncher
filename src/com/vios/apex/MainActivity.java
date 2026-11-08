@@ -1051,50 +1051,64 @@ public class MainActivity extends Activity {
         final Dialog d = new Dialog(this, android.R.style.Theme_Black_NoTitleBar);
         d.requestWindowFeature(Window.FEATURE_NO_TITLE);
         if (d.getWindow() != null) {
-            d.getWindow().setBackgroundDrawable(new ColorDrawable(0xAA000000));
+            d.getWindow().setBackgroundDrawable(new ColorDrawable(0x99000000));
         }
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER);
+        root.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { d.dismiss(); }
+        });
 
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackground(rr(CARD, dp(22)));
-        card.setPadding(dp(24), dp(20), dp(24), dp(20));
+        card.setBackground(rr(CARD, dp(16)));
+        card.setPadding(dp(16), dp(12), dp(16), dp(14));
+        card.setClickable(true);
 
-        // Header: App icon + App Label + Package
+        // Header: App icon (36x36dp) + App Label (14sp) + Package (10sp) + Close button (✕)
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
         ImageView iv = new ImageView(this);
         iv.setImageDrawable(a.icon);
-        head.addView(iv, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        head.addView(iv, new LinearLayout.LayoutParams(dp(36), dp(36)));
 
         LinearLayout txtCol = new LinearLayout(this);
         txtCol.setOrientation(LinearLayout.VERTICAL);
-        TextView title = tv(a.label, 17, TXT, true);
-        TextView sub = tv(a.pkg, 11, SUB, false);
+        TextView title = tv(a.label, 14, TXT, true);
+        title.setSingleLine(true);
+        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        TextView sub = tv(a.pkg, 10, SUB, false);
         sub.setSingleLine(true);
         sub.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
         txtCol.addView(title);
-        txtCol.addView(sub, mp(0, -2, 0, 0, dp(2), 0, 0));
-        head.addView(txtCol, mp(0, -2, 1f, dp(14), 0, 0, 0));
-        card.addView(head, new LinearLayout.LayoutParams(dp(320), -2));
+        txtCol.addView(sub, mp(0, -2, 0, 0, dp(1), 0, 0));
+        head.addView(txtCol, mp(0, -2, 1f, dp(10), 0, dp(8), 0));
+
+        TextView closeX = tv("✕", 13, SUB, true);
+        closeX.setGravity(Gravity.CENTER);
+        closeX.setPadding(dp(8), dp(4), dp(8), dp(4));
+        closeX.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { d.dismiss(); }
+        });
+        head.addView(closeX);
+        card.addView(head, new LinearLayout.LayoutParams(dp(250), -2));
 
         View sep = new View(this);
-        sep.setBackgroundColor(0x22FFFFFF);
-        card.addView(sep, mp(-1, dp(1), 0, 0, dp(16), 0, dp(12)));
+        sep.setBackgroundColor(0x20FFFFFF);
+        card.addView(sep, mp(-1, dp(1), 0, 0, dp(10), 0, dp(10)));
 
-        // Option 1: App Info
+        // Option 1: App Info (height 36dp)
         LinearLayout btnInfo = new LinearLayout(this);
         btnInfo.setOrientation(LinearLayout.HORIZONTAL);
         btnInfo.setGravity(Gravity.CENTER_VERTICAL);
-        btnInfo.setBackground(press(CARD_HI, 0xFF2A221E, dp(14)));
-        btnInfo.setPadding(dp(16), dp(12), dp(16), dp(12));
+        btnInfo.setBackground(press(CARD_HI, 0xFF2A221E, dp(10)));
+        btnInfo.setPadding(dp(12), 0, dp(12), 0);
         btnInfo.setClickable(true);
-        TextView iconInfo = tv("ℹ️", 18, TXT, false);
-        TextView lblInfo = tv("  App Info", 15, TXT, true);
+        TextView iconInfo = tv("ℹ️", 14, TXT, false);
+        TextView lblInfo = tv("  App Info", 13, TXT, true);
         btnInfo.addView(iconInfo);
         btnInfo.addView(lblInfo);
         btnInfo.setOnClickListener(new View.OnClickListener() {
@@ -1109,17 +1123,17 @@ public class MainActivity extends Activity {
                 } catch (Exception e) { toast("Cannot open App Info"); }
             }
         });
-        card.addView(btnInfo, new LinearLayout.LayoutParams(-1, -2));
+        card.addView(btnInfo, new LinearLayout.LayoutParams(-1, dp(36)));
 
-        // Option 2: Uninstall App
+        // Option 2: Uninstall App (height 36dp)
         LinearLayout btnUninstall = new LinearLayout(this);
         btnUninstall.setOrientation(LinearLayout.HORIZONTAL);
         btnUninstall.setGravity(Gravity.CENTER_VERTICAL);
-        btnUninstall.setBackground(press(CARD_HI, 0xFF2A221E, dp(14)));
-        btnUninstall.setPadding(dp(16), dp(12), dp(16), dp(12));
+        btnUninstall.setBackground(press(CARD_HI, 0xFF2A221E, dp(10)));
+        btnUninstall.setPadding(dp(12), 0, dp(12), 0);
         btnUninstall.setClickable(true);
-        TextView iconUn = tv("🗑️", 18, WARN, false);
-        TextView lblUn = tv("  Uninstall App", 15, WARN, true);
+        TextView iconUn = tv("🗑️", 14, WARN, false);
+        TextView lblUn = tv("  Uninstall App", 13, WARN, true);
         btnUninstall.addView(iconUn);
         btnUninstall.addView(lblUn);
         btnUninstall.setOnClickListener(new View.OnClickListener() {
@@ -1151,17 +1165,7 @@ public class MainActivity extends Activity {
                 }
             }
         });
-        card.addView(btnUninstall, mp(-1, -2, 0, 0, dp(10), 0, 0));
-
-        // Cancel button
-        TextView cancel = tv("Cancel", 14, SUB, true);
-        cancel.setGravity(Gravity.CENTER);
-        cancel.setPadding(dp(16), dp(10), dp(16), dp(10));
-        cancel.setBackground(press(0, CARD_HI, dp(14)));
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { d.dismiss(); }
-        });
-        card.addView(cancel, mp(-1, -2, 0, 0, dp(12), 0, 0));
+        card.addView(btnUninstall, mp(-1, dp(36), 0, 0, dp(8), 0, 0));
 
         root.addView(card);
         d.setContentView(root);
