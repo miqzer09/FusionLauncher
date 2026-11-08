@@ -1051,10 +1051,13 @@ public class MainActivity extends Activity {
         final Dialog d = new Dialog(this, android.R.style.Theme_Black_NoTitleBar);
         d.requestWindowFeature(Window.FEATURE_NO_TITLE);
         if (d.getWindow() != null) {
-            d.getWindow().setBackgroundDrawable(new ColorDrawable(0x99000000));
+            d.getWindow().setBackgroundDrawable(new ColorDrawable(0xAA000000));
+            d.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            d.getWindow().setGravity(Gravity.CENTER);
         }
 
         LinearLayout root = new LinearLayout(this);
+        root.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER);
         root.setOnClickListener(new View.OnClickListener() {
@@ -1063,8 +1066,8 @@ public class MainActivity extends Activity {
 
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackground(rr(CARD, dp(16)));
-        card.setPadding(dp(16), dp(12), dp(16), dp(14));
+        card.setBackground(rr(CARD, dp(18)));
+        card.setPadding(dp(18), dp(14), dp(18), dp(16));
         card.setClickable(true);
 
         // Header: App icon (36x36dp) + App Label (14sp) + Package (10sp) + Close button (✕)
@@ -1094,7 +1097,7 @@ public class MainActivity extends Activity {
             @Override public void onClick(View v) { d.dismiss(); }
         });
         head.addView(closeX);
-        card.addView(head, new LinearLayout.LayoutParams(dp(250), -2));
+        card.addView(head, new LinearLayout.LayoutParams(-1, -2));
 
         View sep = new View(this);
         sep.setBackgroundColor(0x20FFFFFF);
@@ -1167,7 +1170,10 @@ public class MainActivity extends Activity {
         });
         card.addView(btnUninstall, mp(-1, dp(36), 0, 0, dp(8), 0, 0));
 
-        root.addView(card);
+        LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(dp(260), -2);
+        cardLp.gravity = Gravity.CENTER;
+        root.addView(card, cardLp);
+
         d.setContentView(root);
         d.show();
     }
