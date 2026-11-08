@@ -32,6 +32,8 @@ if (-not (Test-Path "$root\apex.keystore")) {
 if ($LASTEXITCODE) { throw "sign failed" }
 
 Copy-Item "$root\FusionLauncher.apk" "$root\FusionAmber.apk" -Force
+New-Item -ItemType Directory "$root\release" -Force -ErrorAction SilentlyContinue | Out-Null
+Copy-Item "$root\FusionLauncher.apk" "$root\release\FusionLauncher.apk" -Force
 Remove-Item obj, out -Recurse -Force -ErrorAction SilentlyContinue
 
 Get-Item "$root\FusionLauncher.apk" | Select-Object Name, Length

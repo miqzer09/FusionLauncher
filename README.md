@@ -35,6 +35,14 @@ A high-performance, lightweight, and hardware-accelerated Android automotive lau
 
 ---
 
+## 📦 Pre-compiled APKs (Ready to Install)
+
+Download directly from the [`release/`](release/) folder:
+- **[`release/FusionLauncher.apk`](release/FusionLauncher.apk)**: The primary home launcher (Audi Dual-Wing Sport HUD, live OpenStreetMap, and Ember & Black UI).
+- **[`release/Radio_Modded.apk`](release/Radio_Modded.apk)**: Companion Topway FM Radio app customized with white/silver 7-segment digital display, favorite frequencies, and centered pure white RDS text.
+
+---
+
 ## 🚀 Building & Compiling
 
 Requirements:
