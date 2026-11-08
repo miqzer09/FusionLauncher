@@ -1035,6 +1035,135 @@ public class MainActivity extends Activity {
                 } else launchPackage(a.pkg);
             }
         });
+        grid.setOnItemLongClickListener(new android.widget.AdapterView.OnItemLongClickListener() {
+            @Override public boolean onItemLongClick(android.widget.AdapterView<?> p, View v, int i, long id) {
+                if (pickSlot >= 0) return false;
+                AppItem a = shown.get(i);
+                showAppOptionsDialog(a, d);
+                return true;
+            }
+        });
+        d.setContentView(root);
+        d.show();
+    }
+
+    void showAppOptionsDialog(final AppItem a, final Dialog drawerDialog) {
+        final Dialog d = new Dialog(this, android.R.style.Theme_Black_NoTitleBar);
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        if (d.getWindow() != null) {
+            d.getWindow().setBackgroundDrawable(new ColorDrawable(0xAA000000));
+        }
+
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setGravity(Gravity.CENTER);
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackground(rr(CARD, dp(22)));
+        card.setPadding(dp(24), dp(20), dp(24), dp(20));
+
+        // Header: App icon + App Label + Package
+        LinearLayout head = new LinearLayout(this);
+        head.setOrientation(LinearLayout.HORIZONTAL);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        ImageView iv = new ImageView(this);
+        iv.setImageDrawable(a.icon);
+        head.addView(iv, new LinearLayout.LayoutParams(dp(48), dp(48)));
+
+        LinearLayout txtCol = new LinearLayout(this);
+        txtCol.setOrientation(LinearLayout.VERTICAL);
+        TextView title = tv(a.label, 17, TXT, true);
+        TextView sub = tv(a.pkg, 11, SUB, false);
+        sub.setSingleLine(true);
+        sub.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
+        txtCol.addView(title);
+        txtCol.addView(sub, mp(0, -2, 0, 0, dp(2), 0, 0));
+        head.addView(txtCol, mp(0, -2, 1f, dp(14), 0, 0, 0));
+        card.addView(head, new LinearLayout.LayoutParams(dp(320), -2));
+
+        View sep = new View(this);
+        sep.setBackgroundColor(0x22FFFFFF);
+        card.addView(sep, mp(-1, dp(1), 0, 0, dp(16), 0, dp(12)));
+
+        // Option 1: App Info
+        LinearLayout btnInfo = new LinearLayout(this);
+        btnInfo.setOrientation(LinearLayout.HORIZONTAL);
+        btnInfo.setGravity(Gravity.CENTER_VERTICAL);
+        btnInfo.setBackground(press(CARD_HI, 0xFF2A221E, dp(14)));
+        btnInfo.setPadding(dp(16), dp(12), dp(16), dp(12));
+        btnInfo.setClickable(true);
+        TextView iconInfo = tv("ℹ️", 18, TXT, false);
+        TextView lblInfo = tv("  App Info", 15, TXT, true);
+        btnInfo.addView(iconInfo);
+        btnInfo.addView(lblInfo);
+        btnInfo.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                d.dismiss();
+                if (drawerDialog != null) drawerDialog.dismiss();
+                try {
+                    Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    i.setData(Uri.fromParts("package", a.pkg, null));
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                } catch (Exception e) { toast("Cannot open App Info"); }
+            }
+        });
+        card.addView(btnInfo, new LinearLayout.LayoutParams(-1, -2));
+
+        // Option 2: Uninstall App
+        LinearLayout btnUninstall = new LinearLayout(this);
+        btnUninstall.setOrientation(LinearLayout.HORIZONTAL);
+        btnUninstall.setGravity(Gravity.CENTER_VERTICAL);
+        btnUninstall.setBackground(press(CARD_HI, 0xFF2A221E, dp(14)));
+        btnUninstall.setPadding(dp(16), dp(12), dp(16), dp(12));
+        btnUninstall.setClickable(true);
+        TextView iconUn = tv("🗑️", 18, WARN, false);
+        TextView lblUn = tv("  Uninstall App", 15, WARN, true);
+        btnUninstall.addView(iconUn);
+        btnUninstall.addView(lblUn);
+        btnUninstall.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                d.dismiss();
+                boolean isSystem = false;
+                try {
+                    ApplicationInfo ai = pm.getApplicationInfo(a.pkg, 0);
+                    isSystem = (ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                } catch (Exception ignored) {}
+
+                if (isSystem) {
+                    toast(a.label + " is a system app and cannot be uninstalled");
+                    return;
+                }
+                if (drawerDialog != null) drawerDialog.dismiss();
+                try {
+                    Intent i = new Intent(Intent.ACTION_UNINSTALL_PACKAGE);
+                    i.setData(Uri.parse("package:" + a.pkg));
+                    i.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                } catch (Exception e) {
+                    try {
+                        Intent i2 = new Intent(Intent.ACTION_DELETE, Uri.parse("package:" + a.pkg));
+                        i2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(i2);
+                    } catch (Exception e2) { toast("Cannot uninstall app"); }
+                }
+            }
+        });
+        card.addView(btnUninstall, mp(-1, -2, 0, 0, dp(10), 0, 0));
+
+        // Cancel button
+        TextView cancel = tv("Cancel", 14, SUB, true);
+        cancel.setGravity(Gravity.CENTER);
+        cancel.setPadding(dp(16), dp(10), dp(16), dp(10));
+        cancel.setBackground(press(0, CARD_HI, dp(14)));
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { d.dismiss(); }
+        });
+        card.addView(cancel, mp(-1, -2, 0, 0, dp(12), 0, 0));
+
+        root.addView(card);
         d.setContentView(root);
         d.show();
     }
