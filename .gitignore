@@ -1,0 +1,10 @@
+obj/
+out/
+*.idsig
+.idea/
+*.iml
+.gradle/
+build/
+local.properties
+.DS_Store
+Thumbs.db
