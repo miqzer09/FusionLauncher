@@ -64,6 +64,26 @@ public class BrandIconView extends View {
         0xFF18FFFF, 0xFFB388FF, 0xFFFFFFFF
     };
 
+    private static final android.util.SparseArray<android.graphics.Bitmap> BITMAP_CACHE = new android.util.SparseArray<>();
+
+    public static android.graphics.Bitmap getIconBitmap(Context context, int type, int sizePx) {
+        if (sizePx <= 0) sizePx = 140;
+        int key = (type << 16) | (sizePx & 0xFFFF);
+        android.graphics.Bitmap cached = BITMAP_CACHE.get(key);
+        if (cached != null && !cached.isRecycled()) {
+            return cached;
+        }
+
+        android.graphics.Bitmap bmp = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+        BrandIconView v = new BrandIconView(context, type);
+        v.layout(0, 0, sizePx, sizePx);
+        v.draw(canvas);
+
+        BITMAP_CACHE.put(key, bmp);
+        return bmp;
+    }
+
     public BrandIconView(Context context, int type) {
         super(context);
         this.type = type;

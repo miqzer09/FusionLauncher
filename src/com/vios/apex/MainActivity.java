@@ -750,6 +750,7 @@ public class MainActivity extends Activity {
         artIv.setOutlineProvider(new ViewOutlineProvider() {
             @Override public void getOutline(View v, Outline o) { o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), dp(14)); }
         });
+        artIv.setImageBitmap(BrandIconView.getIconBitmap(this, BrandIconView.TYPE_SPOTIFY, dp(70)));
         card.addView(artIv, new LinearLayout.LayoutParams(dp(70), dp(70)));
 
         LinearLayout r = new LinearLayout(this);
@@ -1336,11 +1337,7 @@ public class MainActivity extends Activity {
                 }
             }
 
-            try {
-                artIv.setImageDrawable(pm.getApplicationIcon("com.tw.radio"));
-            } catch (Exception e) {
-                artIv.setImageDrawable(null);
-            }
+            artIv.setImageBitmap(BrandIconView.getIconBitmap(this, BrandIconView.TYPE_RADIO, dp(70)));
             playBtn.setPlaying(isRadioPlaying);
             return;
         }
@@ -1364,13 +1361,13 @@ public class MainActivity extends Activity {
                         artistTv.setText("Radio Tuner • Live");
                     }
                 }
-                try { artIv.setImageDrawable(pm.getApplicationIcon("com.tw.radio")); } catch (Exception ignored) {}
+                artIv.setImageBitmap(BrandIconView.getIconBitmap(this, BrandIconView.TYPE_RADIO, dp(70)));
                 playBtn.setPlaying(isRadioPlaying);
                 return;
             }
             titleTv.setText("Nothing playing");
             artistTv.setText("Start music, radio or Bluetooth audio");
-            artIv.setImageDrawable(null);
+            artIv.setImageBitmap(BrandIconView.getIconBitmap(this, BrandIconView.TYPE_SPOTIFY, dp(70)));
             playBtn.setPlaying(false);
             return;
         }

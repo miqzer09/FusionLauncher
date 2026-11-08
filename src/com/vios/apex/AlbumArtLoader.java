@@ -160,12 +160,26 @@ public class AlbumArtLoader {
     }
 
     private static void setAppIconFallback(Context context, String packageName, ImageView target) {
-        try {
-            if (packageName != null && !packageName.isEmpty()) {
-                target.setImageDrawable(context.getPackageManager().getApplicationIcon(packageName));
+        int sizePx = target.getWidth() > 0 ? target.getWidth() : (int) (70 * context.getResources().getDisplayMetrics().density);
+        if (packageName != null && !packageName.isEmpty()) {
+            String p = packageName.toLowerCase(java.util.Locale.ROOT);
+            if (p.contains("spotify") || p.contains("tw.music")) {
+                target.setImageBitmap(BrandIconView.getIconBitmap(context, BrandIconView.TYPE_SPOTIFY, sizePx));
                 return;
             }
-        } catch (Exception ignored) {}
-        target.setImageDrawable(null);
+            if (p.contains("radio")) {
+                target.setImageBitmap(BrandIconView.getIconBitmap(context, BrandIconView.TYPE_RADIO, sizePx));
+                return;
+            }
+            if (p.contains("youtube")) {
+                target.setImageBitmap(BrandIconView.getIconBitmap(context, BrandIconView.TYPE_YOUTUBE, sizePx));
+                return;
+            }
+            try {
+                target.setImageDrawable(context.getPackageManager().getApplicationIcon(packageName));
+                return;
+            } catch (Exception ignored) {}
+        }
+        target.setImageBitmap(BrandIconView.getIconBitmap(context, BrandIconView.TYPE_SPOTIFY, sizePx));
     }
 }
